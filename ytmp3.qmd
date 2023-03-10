@@ -1,0 +1,64 @@
+---
+title: "YT"
+format: html
+editor: source
+---
+
+```{r}
+library(reticulate)
+library(magrittr)
+library(stringr)
+library(telegram.bot)
+
+
+# virtualenv_create("r-reticulate")
+use_virtualenv("r-reticulate")
+py_install("pytube", pip = T)
+
+
+credentials <- read.csv("C:/Users/ivan/Google Drive/yt/Telegram_credentials.csv")
+```
+```{python}
+from pytube import YouTube
+import os
+```
+
+```{python}
+yt_url = 'https://www.youtube.com/watch?v=SXfqok7lPnM'
+
+audio = YouTube(yt_url).streams.get_audio_only()
+audio_download = audio.download(output_path='C:/Users/ivan/Google Drive/yt/download')
+```
+
+# Change file name
+
+```{r}
+files <- list.files(path = "C:/Users/ivan/Google Drive/yt/download")
+mp3_file <- files[1] %>% paste0("C:/Users/ivan/Google Drive/yt/download/", .)
+mp3_new_name <- files[1] %>% str_sub(., end = -2) %>% 
+  paste0("C:/Users/ivan/Google Drive/yt/download/",., "3")
+
+file.rename(from = mp3_file, to = mp3_new_name)
+```
+
+
+# Send mp3 file via telegram
+```{r}
+bot <- Bot(token = credentials[1, "token"])
+
+
+bot$sendAudio(
+
+  chat_id = credentials[1, "chat_ID"],
+  audio = mp3_new_name,
+  caption = "yt video")
+
+```
+
+# Delete files to save space
+```{r}
+mydir <- "C:/Users/ivan/Google Drive/yt/download"
+files_to_delete <- dir(path=mydir ,pattern="*.mp3")
+file.remove(file.path(mydir, files_to_delete))
+```
+
